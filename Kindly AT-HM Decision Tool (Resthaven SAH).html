@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kindly Healthcare | AT-HM Referral Decision Tool</title>
+<style>
+  :root {
+    --primary:   #91AC77;
+    --primary-d: #6b8f54;
+    --primary-l: #f2f7ee;
+    --secondary: #faf4e1;
+    --accent:    #f7d677;
+    --pink:      #ffc8ff;
+    --dark:      #2C2C2C;
+    --mid:       #555555;
+    --grey:      #888888;
+    --white:     #ffffff;
+    --red:       #c0392b;
+    --red-l:     #fdf3f2;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: Arial, sans-serif;
+    background: #f5f5f5;
+    color: var(--dark);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--primary);
+    padding: 20px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  header .brand { color: white; }
+  header .brand h1 { font-size: 22px; font-weight: 700; }
+  header .brand p  { font-size: 13px; color: #d4e8c6; margin-top: 2px; }
+  header .doc-title { text-align: right; color: white; }
+  header .doc-title h2 { font-size: 18px; font-weight: 700; }
+  header .doc-title p  { font-size: 12px; color: #d4e8c6; margin-top: 2px; }
+
+  /* ── MAIN ── */
+  main {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 36px 24px 60px;
+  }
+
+  /* ── INTRO ── */
+  .intro {
+    background: var(--secondary);
+    border-left: 5px solid var(--primary);
+    padding: 18px 22px;
+    border-radius: 0 8px 8px 0;
+    margin-bottom: 36px;
+    font-size: 14px;
+    color: var(--mid);
+    line-height: 1.6;
+  }
+  .intro strong { color: var(--dark); }
+
+  /* ── PROGRESS BAR ── */
+  .progress-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 32px;
+  }
+  .progress-label { font-size: 12px; color: var(--grey); white-space: nowrap; }
+  .progress-bar {
+    flex: 1;
+    height: 6px;
+    background: #ddd;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--primary);
+    border-radius: 3px;
+    transition: width 0.4s ease;
+  }
+
+  /* ── DECISION CARD ── */
+  .card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    overflow: hidden;
+    animation: fadeUp 0.3s ease both;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .card-header {
+    background: var(--dark);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .card-header .step-badge {
+    background: var(--primary);
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .card-header h2 {
+    color: white;
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  .card-body { padding: 24px; }
+  .card-body .question {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 20px;
+    line-height: 1.4;
+  }
+  .card-body .sub-note {
+    font-size: 13px;
+    color: var(--mid);
+    margin-bottom: 20px;
+    line-height: 1.5;
+    background: var(--primary-l);
+    padding: 10px 14px;
+    border-radius: 6px;
+  }
+
+  /* ── OPTION BUTTONS ── */
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option-btn {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    background: #f9f9f9;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 14px 18px;
+    cursor: pointer;
+    text-align: left;
+    transition: border-color 0.2s, background 0.2s, transform 0.1s;
+    width: 100%;
+    font-family: Arial, sans-serif;
+  }
+  .option-btn:hover {
+    border-color: var(--primary);
+    background: var(--primary-l);
+    transform: translateX(3px);
+  }
+  .option-btn:active { transform: translateX(1px); }
+  .option-btn .icon {
+    font-size: 22px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .option-btn .opt-text { flex: 1; }
+  .option-btn .opt-label {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--dark);
+    display: block;
+    margin-bottom: 3px;
+  }
+  .option-btn .opt-detail {
+    font-size: 12px;
+    color: var(--grey);
+    display: block;
+    line-height: 1.4;
+  }
+  .option-btn.danger { border-color: #e8c4c0; }
+  .option-btn.danger:hover { border-color: var(--red); background: var(--red-l); }
+
+  /* ── FLAG CHECKLIST ── */
+  .flag-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+  .flag-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 14px;
+    border: 2px solid #e8e8e8;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    font-size: 13px;
+    color: var(--dark);
+    user-select: none;
+    background: white;
+  }
+  .flag-item:hover { border-color: var(--primary); background: var(--primary-l); }
+  .flag-item.checked { border-color: var(--primary); background: var(--primary-l); }
+  .flag-item .check-icon {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    transition: border-color 0.2s, background 0.2s;
+    color: white;
+    font-weight: 700;
+  }
+  .flag-item.checked .check-icon { background: var(--primary); border-color: var(--primary); }
+  .flag-cta {
+    margin-top: 16px;
+    display: flex;
+    gap: 10px;
+  }
+  .btn-primary {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 11px 22px;
+    border-radius: 7px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: Arial, sans-serif;
+    transition: background 0.2s;
+  }
+  .btn-primary:hover { background: var(--primary-d); }
+  .btn-secondary {
+    background: white;
+    color: var(--mid);
+    border: 2px solid #ddd;
+    padding: 11px 22px;
+    border-radius: 7px;
+    font-size: 14px;
+    cursor: pointer;
+    font-family: Arial, sans-serif;
+    transition: border-color 0.2s;
+  }
+  .btn-secondary:hover { border-color: var(--primary); }
+
+  /* ── OUTCOMES ── */
+  .outcome { border-radius: 12px; overflow: hidden; animation: fadeUp 0.3s ease both; }
+
+  /* Direct order outcome */
+  .outcome-direct .out-header {
+    background: #555;
+    padding: 20px 28px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .outcome-direct .out-header .icon { font-size: 28px; }
+  .outcome-direct .out-header h2 { color: white; font-size: 20px; }
+  .outcome-direct .out-header p  { color: #ddd; font-size: 13px; margin-top: 3px; }
+  .outcome-direct .out-body { background: white; padding: 24px 28px; }
+
+  /* Refer outcome */
+  .outcome-refer .out-header {
+    background: var(--primary);
+    padding: 20px 28px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .outcome-refer .out-header .icon { font-size: 28px; }
+  .outcome-refer .out-header h2 { color: white; font-size: 20px; }
+  .outcome-refer .out-header p  { color: #d4e8c6; font-size: 13px; margin-top: 3px; }
+  .outcome-refer .out-body { background: white; padding: 24px 28px; }
+
+  /* Workflow steps */
+  .workflow-steps { display: flex; flex-direction: column; gap: 0; margin: 20px 0; }
+  .wf-step {
+    display: flex;
+    gap: 0;
+    position: relative;
+  }
+  .wf-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 44px;
+    flex-shrink: 0;
+  }
+  .wf-num {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 15px;
+    color: white;
+    flex-shrink: 0;
+    z-index: 1;
+  }
+  .wf-line {
+    width: 2px;
+    flex: 1;
+    min-height: 16px;
+    background: #ddd;
+  }
+  .wf-step:last-child .wf-line { display: none; }
+  .wf-content {
+    padding: 4px 0 20px 14px;
+    flex: 1;
+  }
+  .wf-content h4 { font-size: 14px; font-weight: 700; color: var(--dark); margin-bottom: 4px; }
+  .wf-content p  { font-size: 13px; color: var(--mid); line-height: 1.5; }
+  .wf-tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .tag-resthaven { background: #e8f0e1; color: var(--primary-d); }
+  .tag-kindly    { background: var(--primary-l); color: var(--primary-d); }
+  .tag-both      { background: var(--accent); color: #7a5c00; }
+
+  /* Direct steps */
+  .direct-steps { margin: 16px 0; }
+  .direct-step {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 10px 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .direct-step:last-child { border-bottom: none; }
+  .direct-step .num {
+    background: #555;
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .direct-step p { font-size: 13px; color: var(--mid); line-height: 1.5; }
+  .direct-step strong { color: var(--dark); }
+
+  /* Info boxes */
+  .info-box {
+    background: var(--primary-l);
+    border-left: 4px solid var(--primary);
+    padding: 13px 16px;
+    border-radius: 0 7px 7px 0;
+    margin: 16px 0;
+    font-size: 13px;
+    color: var(--mid);
+    line-height: 1.5;
+  }
+  .info-box strong { color: var(--dark); }
+  .warn-box {
+    background: #fff8e8;
+    border-left: 4px solid var(--accent);
+    padding: 13px 16px;
+    border-radius: 0 7px 7px 0;
+    margin: 16px 0;
+    font-size: 13px;
+    color: #7a5c00;
+    line-height: 1.5;
+  }
+
+  /* Contact strip */
+  .contact-strip {
+    background: var(--secondary);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .contact-strip .contact-label { font-size: 12px; color: var(--grey); margin-bottom: 2px; }
+  .contact-strip .contact-val   { font-size: 14px; font-weight: 700; color: var(--dark); }
+  .contact-strip a {
+    background: var(--primary);
+    color: white;
+    text-decoration: none;
+    padding: 9px 20px;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 700;
+    transition: background 0.2s;
+  }
+  .contact-strip a:hover { background: var(--primary-d); }
+
+  /* Restart */
+  .restart-wrap { text-align: center; margin-top: 28px; }
+  .btn-restart {
+    background: none;
+    border: 2px solid #ddd;
+    color: var(--grey);
+    padding: 9px 20px;
+    border-radius: 7px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: Arial, sans-serif;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .btn-restart:hover { border-color: var(--primary); color: var(--primary); }
+
+  /* Breadcrumb trail */
+  .trail {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 22px;
+    min-height: 24px;
+  }
+  .trail-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--grey);
+  }
+  .trail-item .trail-text {
+    background: #eee;
+    padding: 3px 10px;
+    border-radius: 12px;
+  }
+  .trail-item .trail-arrow { color: #ccc; }
+
+  @media (max-width: 600px) {
+    header { padding: 16px 20px; flex-direction: column; gap: 10px; text-align: center; }
+    header .doc-title { text-align: center; }
+    main { padding: 24px 16px 48px; }
+    .contact-strip { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <h1>Kindly Healthcare</h1>
+    <p>Allied Health for Aged Care</p>
+  </div>
+  <div class="doc-title">
+    <h2>AT-HM Referral Decision Tool</h2>
+    <p>Support at Home | Resthaven Partnership</p>
+  </div>
+</header>
+
+<main>
+  <div class="intro">
+    <strong>How to use this tool:</strong> Answer each question to determine the right pathway for your client's AT-HM needs. The tool will tell you whether to order equipment directly or refer to Kindly Healthcare, and walk you through what happens next.
+  </div>
+
+  <div class="progress-wrap">
+    <span class="progress-label" id="progress-label">Question 1 of 3</span>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+  </div>
+
+  <div class="trail" id="trail"></div>
+
+  <div id="tree-container"></div>
+
+  <div class="restart-wrap" id="restart-wrap" style="display:none">
+    <button class="btn-restart" onclick="restart()">&#8635; Start again for another client</button>
+  </div>
+</main>
+
+<script>
+// ── STATE ──
+let trail = [];
+
+// ── STEPS ──
+// Each step: { id, render() → HTMLElement }
+const steps = {
+
+  // STEP 1: Clinical flags
+  flags: {
+    progress: [1, 3],
+    render() {
+      const flags = [
+        { id: "falls",    label: "Client has had a fall or near miss" },
+        { id: "hospital", label: "Client is being discharged from hospital" },
+        { id: "homemods", label: "Home modifications are likely (installed rails, ramps, threshold changes)" },
+        { id: "complex",  label: "Complex mobility, cognitive or functional presentation" },
+        { id: "multi",    label: "Multiple items may be required" },
+      ];
+      let checked = new Set();
+
+      const card = el("div", "card");
+      card.innerHTML = `
+        <div class="card-header">
+          <span class="step-badge">Step 1 of 3</span>
+          <h2>Check for clinical flags</h2>
+        </div>
+        <div class="card-body">
+          <p class="question">Does this client have any of the following? Select all that apply.</p>
+          <p class="sub-note">If <strong>any</strong> of these apply, the client should be referred to Kindly regardless of budget level.</p>
+          <div class="flag-list" id="flag-list"></div>
+          <div class="flag-cta">
+            <button class="btn-primary" id="flag-next">Continue</button>
+            <button class="btn-secondary" id="flag-none">None of these apply</button>
+          </div>
+        </div>`;
+
+      const list = card.querySelector("#flag-list");
+      flags.forEach(f => {
+        const item = el("div", "flag-item");
+        item.setAttribute("data-id", f.id);
+        item.innerHTML = `<div class="check-icon"></div><span>${f.label}</span>`;
+        item.onclick = () => {
+          if (checked.has(f.id)) { checked.delete(f.id); item.classList.remove("checked"); item.querySelector(".check-icon").textContent = ""; }
+          else { checked.add(f.id); item.classList.add("checked"); item.querySelector(".check-icon").textContent = "✓"; }
+        };
+        list.appendChild(item);
+      });
+
+      card.querySelector("#flag-next").onclick = () => {
+        if (checked.size > 0) {
+          const labels = flags.filter(f => checked.has(f.id)).map(f => f.label);
+          addTrail("Clinical flags present");
+          showOutcome("refer", "clinical_flag", labels);
+        } else {
+          addTrail("No clinical flags");
+          next("budget");
+        }
+      };
+      card.querySelector("#flag-none").onclick = () => {
+        addTrail("No clinical flags");
+        next("budget");
+      };
+      return card;
+    }
+  },
+
+  // STEP 2: Budget
+  budget: {
+    progress: [2, 3],
+    render() {
+      const card = el("div", "card");
+      card.innerHTML = `
+        <div class="card-header">
+          <span class="step-badge">Step 2 of 3</span>
+          <h2>What is the client's AT-HM funding allocation?</h2>
+        </div>
+        <div class="card-body">
+          <p class="question">Select the funding level that applies.</p>
+          <p class="sub-note">The OT assessment fee and Resthaven's 10% management fee come out of this allocation. The funding level determines whether a Kindly referral is financially viable.</p>
+          <div class="options">
+            <button class="option-btn" onclick="budgetChoice('under1k')">
+              <span class="icon">💰</span>
+              <div class="opt-text">
+                <span class="opt-label">Under $1,000</span>
+                <span class="opt-detail">e.g. $500 allocation — limited funding available after fees</span>
+              </div>
+            </button>
+            <button class="option-btn" onclick="budgetChoice('2k')">
+              <span class="icon">💰💰</span>
+              <div class="opt-text">
+                <span class="opt-label">$2,000 or above</span>
+                <span class="opt-detail">Sufficient funding to cover OT assessment and meaningful equipment</span>
+              </div>
+            </button>
+            <button class="option-btn" onclick="budgetChoice('unsure')">
+              <span class="icon">❓</span>
+              <div class="opt-text">
+                <span class="opt-label">Not sure / not yet confirmed</span>
+                <span class="opt-detail">Funding amount hasn't been confirmed yet</span>
+              </div>
+            </button>
+          </div>
+        </div>`;
+      return card;
+    }
+  },
+
+  // STEP 3: Clarity of need (only shown for under $1k)
+  clarity: {
+    progress: [3, 3],
+    render() {
+      const card = el("div", "card");
+      card.innerHTML = `
+        <div class="card-header">
+          <span class="step-badge">Step 3 of 3</span>
+          <h2>Is the required equipment clear?</h2>
+        </div>
+        <div class="card-body">
+          <p class="question">Do you know exactly what item the client needs?</p>
+          <p class="sub-note">At this budget level, an OT assessment may consume too large a proportion of available funding. If the need is clear and simple, the coordinator can order directly.</p>
+          <div class="options">
+            <button class="option-btn" onclick="clarityChoice('clear')">
+              <span class="icon">✅</span>
+              <div class="opt-text">
+                <span class="opt-label">Yes — single, obvious item, I am confident in what is needed</span>
+                <span class="opt-detail">e.g. one shower chair, one walking frame — straightforward requirement</span>
+              </div>
+            </button>
+            <button class="option-btn" onclick="clarityChoice('unclear')">
+              <span class="icon">🤔</span>
+              <div class="opt-text">
+                <span class="opt-label">No — unclear, unsure, or more than one item may be needed</span>
+                <span class="opt-detail">Refer to Kindly — an incorrect order wastes the client's entire budget</span>
+              </div>
+            </button>
+          </div>
+        </div>`;
+      return card;
+    }
+  }
+};
+
+// ── GLOBAL BUTTON HANDLERS ──
+function budgetChoice(val) {
+  if (val === "under1k") { addTrail("Budget under $1,000"); next("clarity"); }
+  else if (val === "2k")  { addTrail("Budget $2,000+"); showOutcome("refer", "budget_2k"); }
+  else                    { addTrail("Budget unsure"); showOutcome("refer", "budget_unsure"); }
+}
+function clarityChoice(val) {
+  if (val === "clear")   { addTrail("Clear single item"); showOutcome("direct"); }
+  else                   { addTrail("Unclear or multiple items"); showOutcome("refer", "unclear"); }
+}
+
+// ── NAVIGATION ──
+function next(stepId) {
+  const step = steps[stepId];
+  setProgress(...step.progress);
+  const container = document.getElementById("tree-container");
+  container.innerHTML = "";
+  container.appendChild(step.render());
+}
+
+function addTrail(text) {
+  trail.push(text);
+  renderTrail();
+}
+
+function renderTrail() {
+  const el2 = document.getElementById("trail");
+  el2.innerHTML = trail.map((t, i) => `
+    <div class="trail-item">
+      ${i > 0 ? '<span class="trail-arrow">›</span>' : ""}
+      <span class="trail-text">${t}</span>
+    </div>`).join("");
+}
+
+function setProgress(current, total) {
+  const pct = ((current - 1) / total) * 100;
+  document.getElementById("progress-fill").style.width = pct + "%";
+  document.getElementById("progress-label").textContent = `Question ${current} of ${total}`;
+}
+
+function restart() {
+  trail = [];
+  renderTrail();
+  setProgress(1, 3);
+  document.getElementById("restart-wrap").style.display = "none";
+  const container = document.getElementById("tree-container");
+  container.innerHTML = "";
+  container.appendChild(steps.flags.render());
+}
+
+// ── OUTCOMES ──
+function showOutcome(type, reason, flagLabels) {
+  document.getElementById("progress-fill").style.width = "100%";
+  document.getElementById("progress-label").textContent = "Complete";
+  document.getElementById("restart-wrap").style.display = "block";
+
+  const container = document.getElementById("tree-container");
+  container.innerHTML = "";
+
+  if (type === "direct") {
+    container.appendChild(renderDirectOutcome());
+  } else {
+    container.appendChild(renderReferOutcome(reason, flagLabels));
+  }
+}
+
+function renderDirectOutcome() {
+  const d = el("div", "outcome outcome-direct");
+  d.innerHTML = `
+    <div class="out-header">
+      <span class="icon">✅</span>
+      <div>
+        <h2>Coordinator can order directly</h2>
+        <p>No OT referral required for this client at this time</p>
+      </div>
+    </div>
+    <div class="out-body">
+      <div class="warn-box">
+        <strong>Reminder:</strong> If anything changes — the client has a fall, their needs turn out to be more complex, or additional items are required — refer to Kindly at that point.
+      </div>
+      <div class="direct-steps">
+        <div class="direct-step">
+          <div class="num">1</div>
+          <p>Confirm the specific item required with the client or family, and check what they currently have.</p>
+        </div>
+        <div class="direct-step">
+          <div class="num">2</div>
+          <p>Source the item through your preferred supplier. Ensure it is appropriate for the client's environment and body size.</p>
+        </div>
+        <div class="direct-step">
+          <div class="num">3</div>
+          <p>Process the equipment cost against the client's AT-HM allocation and document in the client record.</p>
+        </div>
+        <div class="direct-step">
+          <div class="num">4</div>
+          <p>If you have any doubt about suitability at any point, <strong>refer to Kindly before ordering</strong>. An incorrect order wastes the client's entire budget.</p>
+        </div>
+      </div>
+      <div class="info-box">
+        <strong>Need a second opinion?</strong> Contact Kindly Healthcare at any time on <strong>08 7092 0005</strong> — we can provide guidance without a formal referral.
+      </div>
+    </div>`;
+  return d;
+}
+
+function renderReferOutcome(reason, flagLabels) {
+  const reasonMessages = {
+    clinical_flag: { title: "Refer to Kindly Healthcare", sub: "Clinical complexity flags present — OT assessment required" },
+    budget_2k:     { title: "Refer to Kindly Healthcare", sub: "Budget level supports a full OT assessment and equipment sourcing" },
+    budget_unsure: { title: "Refer to Kindly Healthcare", sub: "Confirm budget with Kindly before proceeding — we can advise" },
+    unclear:       { title: "Refer to Kindly Healthcare", sub: "Unclear need — refer to protect the client's budget" },
+  };
+  const msg = reasonMessages[reason] || { title: "Refer to Kindly Healthcare", sub: "" };
+
+  const flagHtml = flagLabels && flagLabels.length
+    ? `<div class="warn-box" style="background:#f2f7ee;border-color:var(--primary);color:var(--primary-d)">
+        <strong>Flags identified:</strong> ${flagLabels.join("; ")}
+       </div>`
+    : "";
+
+  const stepColors = ["#91AC77","#7a9d63","#6b8f54","#5c7f47","#4d7040"];
+  const wfSteps = [
+    { num: 1, color: stepColors[0], owner: "resthaven", ownerLabel: "Resthaven", title: "Submit referral at kindlyhealthcare.com.au", detail: "Complete the online referral form with client details and known needs. Flag as urgent if required. You do not need a full clinical assessment — just what you know." },
+    { num: 2, color: stepColors[1], owner: "kindly",    ownerLabel: "Kindly Healthcare", title: "OT contacts client and schedules assessment", detail: "We acknowledge the referral same or next business day and schedule an in-home assessment within 7 to 10 business days. Urgent referrals are escalated and prioritised." },
+    { num: 3, color: stepColors[2], owner: "kindly",    ownerLabel: "Kindly Healthcare", title: "Focused OT assessment and equipment identification", detail: "Our OT conducts a CHSP-style in-home assessment covering all AT and home modification needs. Where a trial is needed, we organise it directly with the supplier." },
+    { num: 4, color: stepColors[3], owner: "both",      ownerLabel: "Kindly + Resthaven", title: "Quote submitted to you for approval", detail: "Kindly prepares a clear, itemised product recommendation and quote. Your one decision: approve or request changes." },
+    { num: 5, color: stepColors[4], owner: "kindly",    ownerLabel: "Kindly Healthcare", title: "We order, coordinate delivery, and provide outcome note", detail: "On approval, Kindly places the order, liaises with the supplier, and coordinates delivery or installation. We provide an outcome note for the client's record." },
+  ];
+
+  const tagClass = { resthaven: "tag-resthaven", kindly: "tag-kindly", both: "tag-both" };
+
+  const d = el("div", "outcome outcome-refer");
+  d.innerHTML = `
+    <div class="out-header">
+      <span class="icon">📋</span>
+      <div>
+        <h2>${msg.title}</h2>
+        <p>${msg.sub}</p>
+      </div>
+    </div>
+    <div class="out-body">
+      ${flagHtml}
+      <div class="info-box">
+        <strong>Your role in this process is two steps:</strong> submit the referral and approve the quote. Kindly handles everything else.
+      </div>
+      <div class="workflow-steps">
+        ${wfSteps.map(s => `
+          <div class="wf-step">
+            <div class="wf-left">
+              <div class="wf-num" style="background:${s.color}">${s.num}</div>
+              <div class="wf-line"></div>
+            </div>
+            <div class="wf-content">
+              <span class="wf-tag ${tagClass[s.owner]}">${s.ownerLabel}</span>
+              <h4>${s.title}</h4>
+              <p>${s.detail}</p>
+            </div>
+          </div>`).join("")}
+      </div>
+      <div class="contact-strip">
+        <div>
+          <div class="contact-label">Submit referral online</div>
+          <div class="contact-val">kindlyhealthcare.com.au</div>
+        </div>
+        <div>
+          <div class="contact-label">Questions? Call us</div>
+          <div class="contact-val">08 7092 0005</div>
+        </div>
+        <div>
+          <div class="contact-label">Your Kindly contact</div>
+          <div class="contact-val">Tom Curtis, Managing Director</div>
+        </div>
+        <a href="https://kindlyhealthcare.com.au" target="_blank">Refer now ›</a>
+      </div>
+    </div>`;
+  return d;
+}
+
+// ── HELPERS ──
+function el(tag, cls) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  return e;
+}
+
+// ── INIT ──
+setProgress(1, 3);
+document.getElementById("tree-container").appendChild(steps.flags.render());
+</script>
+</body>
+</html>

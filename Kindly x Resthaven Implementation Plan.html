@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kindly x Resthaven | Implementation Plan</title>
+<style>
+  :root {
+    --green:      #91AC77;
+    --green-d:    #6b8f54;
+    --green-l:    #f2f7ee;
+    --amber:      #f7d677;
+    --amber-d:    #c9a800;
+    --amber-l:    #fffae6;
+    --plum:       #c8a0c8;
+    --plum-d:     #9a6b9a;
+    --plum-l:     #f9f0f9;
+    --cream:      #faf4e1;
+    --dark:       #2C2C2C;
+    --mid:        #555555;
+    --grey:       #888888;
+    --light:      #f5f5f5;
+    --white:      #ffffff;
+    --line:       #e0e0e0;
+    --prep-bg:    #f7f7f7;
+    --prep-line:  #d0d0d0;
+    --prep-text:  #aaaaaa;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; background: var(--light); color: var(--dark); }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--green);
+    padding: 20px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .brand h1 { color: white; font-size: 20px; font-weight: 700; }
+  .brand p  { color: #d4e8c6; font-size: 12px; margin-top: 2px; }
+  .doc-meta { text-align: right; color: white; }
+  .doc-meta h2 { font-size: 17px; font-weight: 700; }
+  .doc-meta p  { color: #d4e8c6; font-size: 12px; margin-top: 2px; }
+
+  main { max-width: 1120px; margin: 0 auto; padding: 36px 24px 64px; }
+
+  /* ── INTRO CARDS ── */
+  .intro-row { display: flex; gap: 16px; margin-bottom: 36px; flex-wrap: wrap; }
+  .intro-box {
+    flex: 1; min-width: 200px;
+    border-radius: 10px; padding: 16px 18px; border-top: 5px solid;
+  }
+  .intro-box .stream-label {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.8px; margin-bottom: 6px;
+  }
+  .intro-box h3 { font-size: 15px; font-weight: 700; margin-bottom: 5px; }
+  .intro-box p  { font-size: 12px; color: var(--mid); line-height: 1.5; }
+  .intro-box .kick-off {
+    display: inline-block; margin-top: 10px; font-size: 11px; font-weight: 700;
+    padding: 3px 10px; border-radius: 10px;
+  }
+
+  .box-sah  { background: var(--green-l); border-color: var(--green); }
+  .box-sah  .stream-label { color: var(--green-d); }
+  .box-sah  .kick-off { background: var(--green); color: white; }
+
+  .box-athm { background: var(--amber-l); border-color: var(--amber-d); }
+  .box-athm .stream-label { color: var(--amber-d); }
+  .box-athm .kick-off { background: var(--amber-d); color: white; }
+
+  .box-rcp  { background: var(--plum-l);  border-color: var(--plum-d); }
+  .box-rcp  .stream-label { color: var(--plum-d); }
+  .box-rcp  .kick-off { background: var(--plum-d); color: white; }
+
+  /* ── TIMELINE HEADER ── */
+  .timeline-header {
+    display: grid;
+    grid-template-columns: 130px repeat(4, 1fr);
+  }
+  .tl-spacer { background: transparent; }
+  .phase-header {
+    background: var(--dark); color: white;
+    text-align: center; padding: 13px 8px;
+    border-right: 2px solid #444; position: relative;
+  }
+  .phase-header:last-child { border-right: none; }
+  .phase-header .ph-label {
+    display: block; font-size: 13px; font-weight: 700;
+  }
+  .phase-header .ph-dates {
+    display: block; font-size: 10px; color: var(--amber);
+    margin-top: 4px; font-weight: 400;
+  }
+
+  /* ── SWIM LANES ── */
+  .lane-wrap { display: flex; flex-direction: column; }
+  .lane {
+    display: grid;
+    grid-template-columns: 130px repeat(4, 1fr);
+    border-bottom: 2px solid var(--light);
+  }
+  .lane:last-child { border-bottom: none; }
+
+  .lane-label {
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 16px 12px; border-right: 3px solid;
+  }
+  .lane-label .stream-tag {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.8px; margin-bottom: 4px;
+  }
+  .lane-label h4 { font-size: 13px; font-weight: 700; }
+
+  .lane-sah  .lane-label { border-color: var(--green);   background: var(--green-l); }
+  .lane-sah  .lane-label .stream-tag { color: var(--green-d); }
+  .lane-athm .lane-label { border-color: var(--amber-d); background: var(--amber-l); }
+  .lane-athm .lane-label .stream-tag { color: var(--amber-d); }
+  .lane-rcp  .lane-label { border-color: var(--plum-d);  background: var(--plum-l); }
+  .lane-rcp  .lane-label .stream-tag { color: var(--plum-d); }
+
+  /* ── ACTIVE CELLS ── */
+  .cell {
+    padding: 14px 14px;
+    border-right: 1px solid var(--line);
+    background: white;
+  }
+  .cell:last-child { border-right: none; }
+
+  .milestone { margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px dashed var(--line); }
+  .milestone:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+  .milestone .m-title  { font-size: 12px; font-weight: 700; color: var(--dark); margin-bottom: 4px; line-height: 1.3; }
+  .milestone .m-detail { font-size: 11px; color: var(--mid); line-height: 1.4; }
+  .milestone .m-target {
+    display: inline-block; margin-top: 5px; font-size: 10px; font-weight: 700;
+    padding: 2px 8px; border-radius: 10px; text-transform: uppercase; letter-spacing: 0.4px;
+  }
+  .lane-sah  .m-target { background: var(--green-l); color: var(--green-d); }
+  .lane-athm .m-target { background: var(--amber-l); color: var(--amber-d); }
+  .lane-rcp  .m-target { background: var(--plum-l);  color: var(--plum-d);  }
+
+  /* ── PREPARATION CELLS (RCP April) ── */
+  .cell-prep {
+    padding: 14px 14px;
+    border-right: 1px dashed var(--prep-line);
+    background: var(--prep-bg);
+    position: relative;
+  }
+  .cell-prep:last-child { border-right: none; }
+  .prep-badge {
+    display: inline-block; font-size: 9px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.8px; padding: 2px 8px; border-radius: 10px;
+    background: #e0e0e0; color: #888; margin-bottom: 8px;
+  }
+  .prep-milestone { margin-bottom: 9px; padding-bottom: 9px; border-bottom: 1px dashed #e4e4e4; }
+  .prep-milestone:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+  .prep-milestone .m-title  { font-size: 12px; font-weight: 700; color: #888; margin-bottom: 3px; line-height: 1.3; }
+  .prep-milestone .m-detail { font-size: 11px; color: #aaa; line-height: 1.4; }
+
+  /* ── DESIGN CELLS (RCP May) ── */
+  .cell-design {
+    padding: 14px 14px;
+    border-right: 1px solid var(--line);
+    background: #fdf5fd;
+  }
+  .design-badge {
+    display: inline-block; font-size: 9px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.8px; padding: 2px 8px; border-radius: 10px;
+    background: #e8d0e8; color: var(--plum-d); margin-bottom: 8px;
+  }
+
+  /* ── LIVE CELL (RCP Late May+) ── */
+  .cell-live {
+    padding: 14px 14px;
+    border-right: 1px solid var(--line);
+    background: white;
+    position: relative;
+  }
+  .cell-live:last-child { border-right: none; }
+  .live-badge {
+    display: inline-block; font-size: 9px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.8px; padding: 2px 8px; border-radius: 10px;
+    background: var(--plum-d); color: white; margin-bottom: 8px;
+  }
+
+  /* ── LAUNCH ARROW for RCP ── */
+  .rcp-launch-bar {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    padding: 0 0 0 130px;
+    background: transparent;
+    height: 0;
+    overflow: visible;
+    position: relative;
+    z-index: 2;
+  }
+  /* Arrow line spanning cols 1-2 prep, then pointing to col 3 */
+
+  /* ── OUTCOME BAR ── */
+  .outcome-bar {
+    margin-top: 32px; background: var(--dark); border-radius: 10px;
+    padding: 22px 28px; color: white;
+  }
+  .outcome-bar h3 {
+    font-size: 15px; font-weight: 700; margin-bottom: 16px;
+    color: var(--amber); text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .outcomes-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .outcome-col h4 {
+    font-size: 12px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.5px; margin-bottom: 10px;
+  }
+  .outcome-col.sah  h4 { color: var(--green); }
+  .outcome-col.athm h4 { color: var(--amber); }
+  .outcome-col.rcp  h4 { color: var(--plum); }
+  .outcome-item {
+    display: flex; align-items: flex-start; gap: 8px;
+    margin-bottom: 7px; font-size: 12px; color: #ccc; line-height: 1.4;
+  }
+  .outcome-item .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+  .sah  .dot { background: var(--green); }
+  .athm .dot { background: var(--amber); }
+  .rcp  .dot { background: var(--plum); }
+
+  /* ── ASSUMPTIONS ── */
+  .assumptions {
+    margin-top: 20px; background: var(--cream);
+    border-left: 4px solid var(--amber-d); padding: 14px 18px;
+    border-radius: 0 8px 8px 0; font-size: 12px; color: var(--mid); line-height: 1.7;
+  }
+  .assumptions strong { color: var(--dark); }
+
+  /* ── RCP STAGGER NOTE ── */
+  .stagger-note {
+    margin-top: 12px; background: var(--plum-l);
+    border-left: 4px solid var(--plum-d); padding: 12px 16px;
+    border-radius: 0 8px 8px 0; font-size: 12px; color: var(--mid); line-height: 1.6;
+    display: flex; align-items: flex-start; gap: 10px;
+  }
+  .stagger-note .icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+
+  @media print {
+    body { background: white; }
+    header, .outcome-bar, .lane-label, .phase-header, .m-target, .cell-prep, .live-badge, .design-badge, .prep-badge, .kick-off
+      { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    main { padding: 16px; }
+  }
+  @media (max-width: 700px) {
+    .timeline-header, .lane { grid-template-columns: 90px repeat(4, 1fr); }
+    .intro-row { flex-direction: column; }
+    .outcomes-grid { grid-template-columns: 1fr; }
+    header { flex-direction: column; gap: 10px; text-align: center; }
+    .doc-meta { text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <h1>Kindly Healthcare</h1>
+    <p>Allied Health for Aged Care</p>
+  </div>
+  <div class="doc-meta">
+    <h2>Resthaven Partnership | Implementation Plan</h2>
+    <p>SAH &nbsp;|&nbsp; AT-HM &nbsp;|&nbsp; RCP &nbsp;&nbsp;&#8212;&nbsp;&nbsp; April – June 2026</p>
+  </div>
+</header>
+
+<main>
+
+  <!-- Stream intro cards -->
+  <div class="intro-row">
+    <div class="intro-box box-sah">
+      <div class="stream-label">Stream 1</div>
+      <h3>Support at Home (SAH)</h3>
+      <p>Establish Kindly as an OT and Physio partner for Resthaven SAH clients. MOU executed. Referral pathway live.</p>
+      <span class="kick-off">&#128197; Kicks off April 2026</span>
+    </div>
+    <div class="intro-box box-athm">
+      <div class="stream-label">Stream 2</div>
+      <h3>AT-HM Only Referrals</h3>
+      <p>Position Kindly to manage the full AT-HM cycle for clients with early funding release. Triage process embedded with coordinators.</p>
+      <span class="kick-off">&#128197; Kicks off April 2026</span>
+    </div>
+    <div class="intro-box box-rcp">
+      <div class="stream-label">Stream 3</div>
+      <h3>Restorative Care Pathway (RCP)</h3>
+      <p>Pilot a structured OT and Physio reablement model in Fleurieu. Build in April and May, with first episodes targeted from late May.</p>
+      <span class="kick-off">&#128197; Goes live Late May 2026</span>
+    </div>
+  </div>
+
+  <!-- Timeline -->
+  <div class="timeline-header">
+    <div class="tl-spacer"></div>
+    <div class="phase-header">
+      <span class="ph-label">Early April</span>
+      <span class="ph-dates">1 – 14 April 2026</span>
+    </div>
+    <div class="phase-header">
+      <span class="ph-label">Late April</span>
+      <span class="ph-dates">15 – 30 April 2026</span>
+    </div>
+    <div class="phase-header">
+      <span class="ph-label">May</span>
+      <span class="ph-dates">1 – 19 May 2026</span>
+    </div>
+    <div class="phase-header">
+      <span class="ph-label">Late May – June</span>
+      <span class="ph-dates">20 May 2026 onwards</span>
+    </div>
+  </div>
+
+  <div class="lane-wrap">
+
+    <!-- ── SAH LANE ── -->
+    <div class="lane lane-sah">
+      <div class="lane-label">
+        <div class="stream-tag">SAH</div>
+        <h4>Support at Home</h4>
+      </div>
+
+      <div class="cell">
+        <div class="milestone">
+          <div class="m-title">MOU executed</div>
+          <div class="m-detail">Signed by both parties. Named owner confirmed on each side.</div>
+        </div>
+        <div class="milestone">
+          <div class="m-title">Referral pathway live</div>
+          <div class="m-detail">Resthaven team briefed on the Kindly referral form. Kindly team briefed on Resthaven process preferences.</div>
+        </div>
+      </div>
+
+      <div class="cell">
+        <div class="milestone">
+          <div class="m-title">First SAH referrals received</div>
+          <div class="m-detail">Coordinators begin referring SAH clients via the Kindly referral form.</div>
+          <span class="m-target">Target: 1–3 referrals</span>
+        </div>
+        <div class="milestone">
+          <div class="m-title">First assessments completed</div>
+          <div class="m-detail">Clients seen, progress notes returned to Resthaven. Billing process confirmed.</div>
+        </div>
+      </div>
+
+      <div class="cell">
+        <div class="milestone">
+          <div class="m-title">Active SAH clients on service</div>
+          <div class="m-detail">Clients actively receiving OT or Physio. Invoicing and reporting flowing smoothly.</div>
+          <span class="m-target">Target: 4–6 active clients</span>
+        </div>
+      </div>
+
+      <div class="cell">
+        <div class="milestone">
+          <div class="m-title">Referral volume review</div>
+          <div class="m-detail">Joint check-in with Resthaven on referral numbers, turnaround times, and any friction points.</div>
+          <span class="m-target">Target: 10+ clients serviced</span>
+        </div>
+        <div class="milestone">
+          <div class="m-title">SAH Regional discussion</div>
+          <div class="m-detail">Begin scoping Murray Bridge and Mount Gambier coverage. Agree discovery timeline.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── AT-HM LANE ── -->
+    <div class="lane lane-athm">
+      <div class="lane-label">
+        <div class="stream-tag">AT-HM</div>
+        <h4>Assistive Tech &amp; Home Mods</h4>
+      </div>
+
+      <div class="cell">
+        <div class="milestone">
+          <div class="m-title">Workflow and guide shared with Resthaven</div>
+          <div class="m-detail">AT-HM referral guide, workflow, flowchart, and decision tool shared with Resthaven for coordinator distribution.</div>
+        </div>
+        <div class="milestone">
+          <div class="m-title">Triage process understood</div>
+          <div class="m-detail">Coordinators clear on when to refer vs order directly. Referral form process confirmed.</div>
+        </div>
+      </div>
+
+      <div class="cell">
+        <div class="milestone">
+          <div class="m-title">First AT-HM referrals and assessments</div>
+          <div class="m-detail">Coordinators using the referral form for eligible clients. Triage criteria applied. OT assessments and first quotes submitted.</div>
+          <span class="m-target">Target: 2–3 referrals</span>
+        </div>
+      </div>
+
+      <div class="cell">
+        <div class="milestone">
+          <div class="m-title">Full cycle tested and delivering</div>
+          <div class="m-detail">Referral, assessment, trial, quote, approval, delivery, and outcome note all completing end-to-end. Coordinator feedback gathered.</div>
+          <span class="m-target">Target: 4–6 cases complete</span>
+        </div>
+      </div>
+
+      <div class="cell">
+        <div class="milestone">
+          <div class="m-title">Process review</div>
+          <div class="m-detail">Review average turnaround, common equipment categories, and approval bottlenecks. Identify streamlining opportunities.</div>
+          <span class="m-target">Target: 10+ cases processed</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── RCP LANE ── -->
+    <div class="lane lane-rcp">
+      <div class="lane-label">
+        <div class="stream-tag">RCP</div>
+        <h4>Restorative Care Pathway</h4>
+      </div>
+
+      <!-- Col 1: Preparation -->
+      <div class="cell-prep">
+        <div class="prep-badge">&#9679; Preparation</div>
+        <div class="prep-milestone">
+          <div class="m-title">RCP proposal reviewed by Resthaven</div>
+          <div class="m-detail">Initial feedback on scenario preference and geography. Conversation started — no commitment yet.</div>
+        </div>
+      </div>
+
+      <!-- Col 2: Preparation continued -->
+      <div class="cell-prep">
+        <div class="prep-badge">&#9679; Preparation</div>
+        <div class="prep-milestone">
+          <div class="m-title">Scenario and referral trigger agreed</div>
+          <div class="m-detail">Scenario preference (assessment-only, oversight, or blended) confirmed with Resthaven. Referral criteria documented.</div>
+        </div>
+        <div class="prep-milestone">
+          <div class="m-title">Kindly internal readiness confirmed</div>
+          <div class="m-detail">Fleurieu logistics, travel model, and supplier relationships scoped. Pilot ready to move to design phase.</div>
+        </div>
+      </div>
+
+      <!-- Col 3: Pilot design (May) -->
+      <div class="cell-design">
+        <div class="design-badge">&#9654; Pilot Design</div>
+        <div class="milestone">
+          <div class="m-title">Pilot parameters agreed</div>
+          <div class="m-detail">Scenario confirmed (assessment-only, oversight, or blended). Referral trigger agreed. Episode documentation process finalised.</div>
+        </div>
+        <div class="milestone">
+          <div class="m-title">Logistics confirmed</div>
+          <div class="m-detail">Service days, travel model, and supplier relationships for Fleurieu confirmed. Pilot ready to launch.</div>
+          <span class="m-target">Ready by 19 May</span>
+        </div>
+      </div>
+
+      <!-- Col 4: Live (Late May+) -->
+      <div class="cell-live">
+        <div class="live-badge">&#9679; Live</div>
+        <div class="milestone">
+          <div class="m-title">First RCP clients enrolled</div>
+          <div class="m-detail">Pilot commences in Fleurieu. Kindly OT and Physio delivering structured reablement episodes.</div>
+          <span class="m-target">Target: 2–4 pilot clients</span>
+        </div>
+        <div class="milestone">
+          <div class="m-title">Outcomes tracked and reported</div>
+          <div class="m-detail">Episode summaries and outcome data returned to Resthaven RCP lead. Pilot review date set.</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end lane-wrap -->
+
+  <!-- RCP stagger note -->
+  <div class="stagger-note">
+    <span class="icon">&#9654;</span>
+    <span><strong>RCP stagger rationale:</strong> SAH and AT-HM are operationally ready to launch now. RCP requires additional groundwork — scenario agreement, logistics confirmation, and pilot design. Building through April and May ensures the pilot launches on solid foundations rather than being rushed, with SAH and AT-HM activity running in parallel to demonstrate the partnership value early.</span>
+  </div>
+
+  <!-- By June outcomes -->
+  <div class="outcome-bar">
+    <h3>By End of June 2026 — What Success Looks Like</h3>
+    <div class="outcomes-grid">
+      <div class="outcome-col sah">
+        <h4>SAH</h4>
+        <div class="outcome-item sah"><div class="dot"></div><span>MOU signed and active since early April</span></div>
+        <div class="outcome-item sah"><div class="dot"></div><span>10 or more SAH clients serviced</span></div>
+        <div class="outcome-item sah"><div class="dot"></div><span>Billing and reporting running smoothly</span></div>
+        <div class="outcome-item sah"><div class="dot"></div><span>SAH Regional scoping underway</span></div>
+      </div>
+      <div class="outcome-col athm">
+        <h4>AT-HM</h4>
+        <div class="outcome-item athm"><div class="dot"></div><span>Triage process embedded with coordinators since April</span></div>
+        <div class="outcome-item athm"><div class="dot"></div><span>10 or more AT-HM cases completed end-to-end</span></div>
+        <div class="outcome-item athm"><div class="dot"></div><span>Consistent turnaround within 7 to 10 business days</span></div>
+        <div class="outcome-item athm"><div class="dot"></div><span>Coordinator friction identified and resolved</span></div>
+      </div>
+      <div class="outcome-col rcp">
+        <h4>RCP</h4>
+        <div class="outcome-item rcp"><div class="dot"></div><span>Pilot active in Fleurieu with initial client episodes underway</span></div>
+        <div class="outcome-item rcp"><div class="dot"></div><span>First episode outcome data collected and reported</span></div>
+        <div class="outcome-item rcp"><div class="dot"></div><span>Pilot review scheduled with Resthaven</span></div>
+        <div class="outcome-item rcp"><div class="dot"></div><span>Scale decision and next geography identified</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Assumptions -->
+  <div class="assumptions">
+    <strong>Key assumptions and dependencies:</strong>&nbsp;
+    MOU is executed in early April to unblock SAH and AT-HM referrals immediately.
+    SAH and AT-HM referral activity through April and May supports the commercial case for committing Kindly resources to the Fleurieu RCP pilot.
+    RCP will pilot with whatever client numbers are available — no minimum volume requirement. Scenario and logistics to be agreed with Resthaven ahead of late May go-live.
+    Dates should be agreed jointly with Resthaven at the next check-in and locked in.
+  </div>
+
+</main>
+
+</body>
+</html>
